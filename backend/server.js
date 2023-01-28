@@ -6,7 +6,7 @@ const favicon = require("serve-favicon");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-// const Contact = require("./models/contactModel");
+const Contact = require("./models/contactModel");
 
 
 dotenv.config();
@@ -28,6 +28,87 @@ app.use(cors());
 
 app.use(express.static(__dirname + "/public"));
 app.use("/images", express.static(__dirname + "/images"));
+
+//For Createing API and script for sending data in mongodab and connect with frontend
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// CRUD Operations Contact Routes
+
+//@path /contact
+//@desc adding new contact
+//@method post
+//@access public
+app.route("/contact").post((req, res) => {
+    let newContact = new Contact(req.body);
+
+    newContact.save((err, contact) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json(contact);
+    });
+});
+
+
+//@path /contact
+//@desc getting all contacts created
+//@method get
+//@access public
+app.route("/contact").get((req, res) => {
+    Contact.find({}, (err, contact) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json(contact);
+    });
+});
+
+//@path /contact/:contactID
+//@desc getting contact by ID
+//@method get
+//@access public
+app.route("/contact/:contactID").get((req, res) => {
+    Contact.findById(req.params.contactID, (err, contact) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json(contact);
+    });
+});
+
+//@path /contact/:contactID
+//@desc updating contact by ID
+//@method put
+//@access public
+app.route("/contact/:contactID").put((req, res) => {
+    Contact.findOneAndUpdate(
+        { _id: req.params.contactID },
+        req.body,
+        { new: true, useFindAndModify: false },
+        (err, contact) => {
+            if (err) {
+                res.send(err);
+            }
+            res.json(contact);
+        }
+    );
+});
+
+//@path /contact/:contactID
+//@desc deleting contact by ID
+//@method delete
+//@access public
+app.route("/contact/:contactID").delete((req, res) => {
+    Contact.deleteOne({ _id: req.params.contactID }, (err, message) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json({ message: "contact successfully deleted" });
+    });
+});
+
+//CRUD Operations Contact Routes END
 
 const PORT = process.env.PORT || 5000
 
